@@ -1,5 +1,6 @@
 package com.example.mobile_monitor;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,17 +48,17 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
-    }
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -69,6 +70,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
+            case R.id.parental_monitoring:
+                Intent intent = new Intent(this, ParentalMonitoring.class);
+                startActivity(intent);
+                return true;
             case R.id.sign_out_menu:
                 Toast.makeText(this,"You are Signed Out",Toast.LENGTH_LONG).show();
                 AuthUI.getInstance().signOut(this);
