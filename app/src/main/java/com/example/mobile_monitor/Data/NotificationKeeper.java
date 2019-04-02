@@ -11,4 +11,40 @@ public class NotificationKeeper implements Serializable {
     public NotificationKeeper(){
         messageLines=new ArrayList<>();
     }
+
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public ArrayList<String> getMessageLines() {
+        return messageLines;
+    }
+
+    public void setMessageLines(ArrayList<String> messageLines) {
+        this.messageLines = messageLines;
+    }
+
+
+
 }

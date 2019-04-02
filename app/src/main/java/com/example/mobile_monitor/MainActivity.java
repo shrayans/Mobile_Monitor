@@ -22,8 +22,13 @@ import com.example.mobile_monitor.Data.NotificationKeeper;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +36,14 @@ public class MainActivity extends AppCompatActivity {
 
     FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+
+   // FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+
+
+
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -40,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         mFirebaseAuth=FirebaseAuth.getInstance();
         mAuthStateListener=new FirebaseAuth.AuthStateListener() {
@@ -173,6 +187,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("messageInMain",i+". MessaageLine: "+notificationKeeper.messageLines.get(i-1));
             }
             //Object(notificationKeeper) is to be uploaded to fire-base
+
+            String currentDateTime;
+
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            currentDateTime = sdf1.format(new Date());
+
+            mDatabase.child("Notification").child(user.getUid()).child(currentDateTime).setValue(notificationKeeper);
+
+
         }
     }
 }
