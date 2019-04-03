@@ -1,5 +1,6 @@
 package com.example.mobile_monitor;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -21,14 +23,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.mobile_monitor.Data.NotificationKeeper;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -123,6 +129,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
+            case R.id.group_menu:
+                SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                String operation=pref.getString("GroupID",null);
+                if(operation!=null) {
+                    showGroupID(this,operation);
+                }
+                else showDialogForGroups(this,"Select Option","Create a group of devices or join a group of devices");
+                return true;
             case R.id.sign_out_menu:
                 Toast.makeText(this,"You are Signed Out",Toast.LENGTH_LONG).show();
                 AuthUI.getInstance().signOut(this);
@@ -130,6 +144,102 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void showGroupID(Activity activity, String groupID) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle("Your Group ID");
+        builder.setMessage("Copy Your Group ID\n"+groupID);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    public void showDialogForGroups(final Activity activity, String title, CharSequence message) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        if (title != null) builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton("Create Group", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mDatabase.child("Groups").child("group-"+user.getUid()).setValue(user.getUid());
+                SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("GroupID", "group-"+user.getUid());
+                editor.commit();
+                showGroupID(activity,"group-"+user.getUid());
+                dialog.cancel();
+            }
+        });
+        builder.setNegativeButton("Join Group", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                takeGroupID(activity);
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    public void takeGroupID(final Activity activity){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Group ID");
+        // Set up the input
+        final EditText inputField = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        inputField.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(inputField);
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, int which) {
+                if(inputField.getText().toString().trim().equalsIgnoreCase("")) {
+                    inputField.setError("This field can not be blank");
+                }
+                else{
+                    final String inputID=inputField.getText().toString();
+                    if(!inputID.startsWith("group-")){
+                        inputField.setError("Enter a valid group ID");
+                    }
+                    else{
+                        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+                        rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                if (snapshot.hasChild(inputID)) {
+                                    //add the current user(user.getUid()) to this node(inputID)
+                                    mDatabase.child("Groups").child(inputID).setValue(user.getUid());
+                                    SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                                    SharedPreferences.Editor editor = pref.edit();
+                                    editor.putString("GroupID",inputID);
+                                    editor.commit();
+                                    dialog.cancel();
+                                    showGroupID(activity,inputID);
+                                }
+                                else{
+                                    inputField.setError("There is no group with this ID");
+                                }
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                //...??
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
     }
 
     @Override
