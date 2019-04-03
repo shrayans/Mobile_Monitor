@@ -6,7 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.provider.Settings;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +19,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.mobile_monitor.Data.NotificationKeeper;
@@ -37,13 +42,11 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
-   // FirebaseDatabase database = FirebaseDatabase.getInstance();
+    //FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-
-
-
+    Button on_off_switch;
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -63,6 +66,15 @@ public class MainActivity extends AppCompatActivity {
                 if(user!=null){
                     setContentView(R.layout.activity_main);
                     Toast.makeText(MainActivity.this,"WELCOME! You are signed in",Toast.LENGTH_LONG).show();
+
+                    on_off_switch=findViewById(R.id.on_off_switch);
+                    SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                    String operation=pref.getString("ReadNotifications",null);
+                    if(operation!=null&&operation.equals("Activated")) {
+                        on_off_switch.setText("Turn Off");
+                        on_off_switch.setBackgroundResource(R.drawable.circle_red);
+                        on_off_switch.setPadding(0,20,0,0);
+                    }
 
                     // If the user did not turn the notification listener service on we prompt him to do so
                     if(!isNotificationServiceEnabled()){
@@ -175,6 +187,25 @@ public class MainActivity extends AppCompatActivity {
         return(alertDialogBuilder.create());
     }
 
+    public void switchClicked(View view) {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        SharedPreferences.Editor editor = pref.edit();
+        if(on_off_switch.getText().toString().equals("Turn On")) {
+            on_off_switch.setText("Turn Off");
+            on_off_switch.setBackgroundResource(R.drawable.circle_red);
+            on_off_switch.setPadding(0,20,0,0);
+            editor.putString("ReadNotifications", "Activated");
+            editor.commit();
+        }
+        else{
+            on_off_switch.setText("Turn On");
+            on_off_switch.setBackgroundResource(R.drawable.circle_green);
+            on_off_switch.setPadding(0,20,0,0);
+            editor.putString("ReadNotifications", "Deactivated");
+            editor.commit();
+        }
+    }
+
     class NotificationReceiver extends BroadcastReceiver {
 
         @Override
@@ -188,14 +219,16 @@ public class MainActivity extends AppCompatActivity {
             }
             //Object(notificationKeeper) is to be uploaded to fire-base
 
-            String currentDateTime;
+            SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+            String operation=pref.getString("ReadNotifications",null);
+            if(operation!=null&&operation.equals("Activated")) {
+                String currentDateTime;
 
-            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            currentDateTime = sdf1.format(new Date());
+                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                currentDateTime = sdf1.format(new Date());
 
-            mDatabase.child("Notification").child(user.getUid()).child(currentDateTime).setValue(notificationKeeper);
-
-
+                mDatabase.child("Notification").child(user.getUid()).child(currentDateTime).setValue(notificationKeeper);
+            }
         }
     }
 }
