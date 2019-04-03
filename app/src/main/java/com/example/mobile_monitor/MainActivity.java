@@ -2,15 +2,15 @@ package com.example.mobile_monitor;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.provider.Settings;
-import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mobile_monitor.Data.NotificationKeeper;
@@ -38,7 +39,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -132,12 +132,17 @@ public class MainActivity extends AppCompatActivity {
             case R.id.group_menu:
                 SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
                 String operation=pref.getString("GroupID",null);
-                if(operation!=null) {
+                if(operation!=null&&!operation.equals("")) {
                     showGroupID(this,operation);
                 }
                 else showDialogForGroups(this,"Select Option","Create a group of devices or join a group of devices");
                 return true;
             case R.id.sign_out_menu:
+                SharedPreferences prefSignOut = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+                SharedPreferences.Editor editor = prefSignOut.edit();
+                editor.putString("GroupID","");
+                editor.putString("ReadNotifications", "");
+                editor.commit();
                 Toast.makeText(this,"You are Signed Out",Toast.LENGTH_LONG).show();
                 AuthUI.getInstance().signOut(this);
                 return true;
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void showGroupID(Activity activity, String groupID) {
+    public void showGroupID(Activity activity, final String groupID) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Your Group ID");
         builder.setMessage("Copy Your Group ID\n"+groupID);
@@ -154,6 +159,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
+            }
+        });
+        builder.setNegativeButton("Copy ID", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("ClipBoard Label", groupID);
+                clipboard.setPrimaryClip(clip);
             }
         });
         builder.show();
@@ -198,21 +211,32 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final DialogInterface dialog, int which) {
                 if(inputField.getText().toString().trim().equalsIgnoreCase("")) {
-                    inputField.setError("This field can not be blank");
+                    Toast.makeText(activity, "This field can not be blank", Toast.LENGTH_SHORT).show();
                 }
                 else{
                     final String inputID=inputField.getText().toString();
                     if(!inputID.startsWith("group-")){
-                        inputField.setError("Enter a valid group ID");
+                        Toast.makeText(activity, "Enter a valid group ID", Toast.LENGTH_SHORT).show();
                     }
                     else{
-                        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+                        final DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference().child("Groups");
                         rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot snapshot) {
                                 if (snapshot.hasChild(inputID)) {
                                     //add the current user(user.getUid()) to this node(inputID)
-                                    mDatabase.child("Groups").child(inputID).setValue(user.getUid());
+
+                                    Log.e("MyLog " ,"Count: "+snapshot.getChildrenCount());
+                                    String oldValue="";
+                                    for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+                                        String key=postSnapshot.getKey();
+                                        if(key.equals(inputID)) {
+                                            oldValue = postSnapshot.getValue(String.class);
+                                            Log.e("MyLog", "key/value: " + key + "/" + oldValue);
+                                        }
+                                    }
+
+                                    mDatabase.child("Groups").child(inputID).setValue(oldValue+"/"+user.getUid());
                                     SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
                                     SharedPreferences.Editor editor = pref.edit();
                                     editor.putString("GroupID",inputID);
@@ -221,12 +245,12 @@ public class MainActivity extends AppCompatActivity {
                                     showGroupID(activity,inputID);
                                 }
                                 else{
-                                    inputField.setError("There is no group with this ID");
+                                    Toast.makeText(activity, "There is no group with this ID", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-                                //...??
+                                Log.e("The read failed: " ,databaseError.getMessage());
                             }
                         });
                     }
