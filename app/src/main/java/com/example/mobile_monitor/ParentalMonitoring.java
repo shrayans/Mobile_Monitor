@@ -1,10 +1,14 @@
 package com.example.mobile_monitor;
 
+import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.location.SettingInjectorService;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.provider.Settings;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +40,14 @@ public class ParentalMonitoring extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parental_monitoring);
+
+        if(!isAccessGranted()) {
+            Toast.makeText(this,
+                    getString(R.string.explanation_access_to_appusage_is_not_enabled),
+                    Toast.LENGTH_LONG).show();
+            Intent usageIntent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            startActivity(usageIntent);
+        }
 
         populateListView();
 
@@ -74,9 +87,6 @@ public class ParentalMonitoring extends AppCompatActivity {
         intervalListView = findViewById(R.id.list_view);
         List<String> interval_arrayList = new ArrayList<String>();
         interval_arrayList.add("Daily");
-        interval_arrayList.add("Weekly");
-        interval_arrayList.add("Monthly");
-        interval_arrayList.add("Yearly");
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 this,
@@ -99,8 +109,26 @@ public class ParentalMonitoring extends AppCompatActivity {
             Toast.makeText(this,
                     getString(R.string.explanation_access_to_appusage_is_not_enabled),
                     Toast.LENGTH_LONG).show();
+
         }
         return queryUsageStats;
+    }
+
+    private boolean isAccessGranted() {
+        try {
+            PackageManager packageManager = getPackageManager();
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(getPackageName(), 0);
+            AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+            int mode = 0;
+            if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
+                mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                        applicationInfo.uid, applicationInfo.packageName);
+            }
+            return (mode == AppOpsManager.MODE_ALLOWED);
+
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     void updateAppsList(List<UsageStats> usageStatsList) {
