@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     //FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    String uid;
 
     Button on_off_switch;
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 if(user!=null){
                     setContentView(R.layout.activity_main);
                     Toast.makeText(MainActivity.this,"WELCOME! You are signed in",Toast.LENGTH_LONG).show();
+                    MainActivity.this.user = user;
 
                     on_off_switch=findViewById(R.id.on_off_switch);
                     SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
@@ -129,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
+            case R.id.parental_monitoring:
+                Intent intent = new Intent(this, ParentalMonitoring.class);
+                startActivity(intent);
+                return true;
             case R.id.group_menu:
                 SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
                 String operation=pref.getString("GroupID",null);
