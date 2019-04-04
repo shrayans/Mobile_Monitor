@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("Create Group", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mDatabase.child("Groups").child("group-"+user.getUid()).setValue(user.getUid());
+                mDatabase.child("Groups").child("group-"+user.getUid()).child("1").setValue(user.getUid());
                 SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putString("GroupID", "group-"+user.getUid());
@@ -231,18 +231,28 @@ public class MainActivity extends AppCompatActivity {
                             public void onDataChange(DataSnapshot snapshot) {
                                 if (snapshot.hasChild(inputID)) {
                                     //add the current user(user.getUid()) to this node(inputID)
-
                                     Log.e("MyLog " ,"Count: "+snapshot.getChildrenCount());
                                     String oldValue="";
                                     for (DataSnapshot postSnapshot: snapshot.getChildren()) {
                                         String key=postSnapshot.getKey();
                                         if(key.equals(inputID)) {
-                                            oldValue = postSnapshot.getValue(String.class);
-                                            Log.e("MyLog", "key/value: " + key + "/" + oldValue);
+                                            //oldValue = postSnapshot.getValue(String.class);
+                                            //Log.e("MyLog", "key/value: " + key + "/" + oldValue);
+                                            DatabaseReference newRef=FirebaseDatabase.getInstance().getReference().child("Groups").child(inputID);
+                                            newRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                    long count=dataSnapshot.getChildrenCount();
+                                                    count++;
+                                                    mDatabase.child("Groups").child(inputID).child(String.valueOf(count)).setValue(user.getUid());
+                                                }
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                    Log.e("The read failed: " ,databaseError.getMessage());
+                                                }
+                                            });
                                         }
                                     }
-
-                                    mDatabase.child("Groups").child(inputID).setValue(oldValue+"/"+user.getUid());
                                     SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
                                     SharedPreferences.Editor editor = pref.edit();
                                     editor.putString("GroupID",inputID);
