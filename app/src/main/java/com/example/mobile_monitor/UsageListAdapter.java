@@ -36,6 +36,7 @@ public class UsageListAdapter extends RecyclerView.Adapter<UsageListAdapter.View
 
     private List<CustomUsageStats> mCustomUsageStatsList = new ArrayList<>();
     private DateFormat mDateFormat = new SimpleDateFormat();
+    long lastTimeUsed;
 
     /**
      * Provide a reference to the type of views that you are using (custom ViewHolder)

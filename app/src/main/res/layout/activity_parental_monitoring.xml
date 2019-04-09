@@ -6,25 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".ParentalMonitoring">
 
-    <ListView
-        android:id="@+id/list_view"
-        android:layout_width="395dp"
-        android:layout_height="233dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="8dp" />
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview_app_usage"
         android:layout_width="match_parent"
-        android:layout_height="396dp"
+        android:layout_height="558dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:drawSelectorOnTop="true"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/list_view"
-        tools:layout_editor_absoluteX="8dp" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.114"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <Button
+        android:id="@+id/button_get_usage_stats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="showApps"
+        android:text="Get Usage Stats"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recyclerview_app_usage" />
 
 </android.support.constraint.ConstraintLayout>

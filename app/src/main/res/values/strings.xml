@@ -16,7 +16,11 @@
 
 <string name="notification_listener_service">"Notification Listener Service"</string>
 
-<string name="notification_listener_service_explanation">"For the the app. to work you need to enable the Notification Listener Service. Enable it now?"</string>
+<string name="notification_listener_service_explanation">"For the app. to work you need to enable the Notification Listener Service. Enable it now?"</string>
+
+<string name="app_usage_permission">"App Usage Permission"</string>
+
+<string name="app_usage_permission_explanation">"For this functionality to work you need to enable the App Usage. Enable it now?"</string>
 
 <string name="yes">Yes</string>
 
