@@ -72,7 +72,7 @@ public class ParentalMonitoring extends AppCompatActivity {
         mUsageStatsManager = (UsageStatsManager) this
                 .getSystemService(Context.USAGE_STATS_SERVICE);
 
-        timedUsageCheck();
+        timedUsageCheck();//is method me firebase krna hai.
 
     }
 
@@ -81,7 +81,25 @@ public class ParentalMonitoring extends AppCompatActivity {
         TimerTask minuteCheck = new TimerTask() {
             @Override
             public void run() {
-                Log.i("&&&Timer::", "Inside Timer");
+
+                String interval ="Daily";
+                StatsUsageInterval statsUsageInterval = StatsUsageInterval
+                        .getValue(interval);
+                if (statsUsageInterval != null) {
+                    List<UsageStats> usageStatsList =
+                            getUsageStatistics(statsUsageInterval.mInterval);
+                    Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
+
+                    //usageStatsList ko upload krna hai.
+
+                    //getPackageName and getLastTimeUsed 2 methods hai jo String aur long return karri.
+                    Log.i("&&&InsideTimer::", ""+usageStatsList.get(0).getPackageName());
+                    long lastTime = usageStatsList.get(0).getLastTimeUsed();
+                    formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a");
+                    Log.i("&&&ITLastTime::", ""+formatter.format(lastTime));
+
+                    //--->Firebase ka code yaha likhna<----- to wo timer ke andar rahega.
+                }
             }
         };
         timer.schedule(minuteCheck, 01, 1000*30); //1000*60 - every minute.
