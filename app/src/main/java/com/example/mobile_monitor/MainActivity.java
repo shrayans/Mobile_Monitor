@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     String uid;
 
     Button on_off_switch;
+    TextView status;
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseUser user=firebaseAuth.getCurrentUser();
                 if(user!=null){
                     setContentView(R.layout.activity_main);
+                    status=findViewById(R.id.mobileMonitoringView);
                     Toast.makeText(MainActivity.this,"WELCOME! You are signed in",Toast.LENGTH_LONG).show();
                     MainActivity.this.user = user;
 
@@ -342,6 +344,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = pref.edit();
         if(on_off_switch.getText().toString().equals("Turn On")) {
             on_off_switch.setText("Turn Off");
+            status.setText("Mobile Monitoring is Activated");
+            Toast.makeText(this, "Mobile Monitoring is ON now", Toast.LENGTH_SHORT).show();
             on_off_switch.setBackgroundResource(R.drawable.circle_red);
             on_off_switch.setPadding(0,20,0,0);
             editor.putString("ReadNotifications", "Activated");
@@ -349,6 +353,8 @@ public class MainActivity extends AppCompatActivity {
         }
         else{
             on_off_switch.setText("Turn On");
+            status.setText("Mobile Monitoring is Deactivated");
+            Toast.makeText(this, "Mobile Monitoring is OFF now", Toast.LENGTH_SHORT).show();
             on_off_switch.setBackgroundResource(R.drawable.circle_green);
             on_off_switch.setPadding(0,20,0,0);
             editor.putString("ReadNotifications", "Deactivated");
@@ -372,12 +378,12 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
             String operation=pref.getString("ReadNotifications",null);
             if(operation!=null&&operation.equals("Activated")) {
-                String currentDateTime;
+                //String currentDateTime;
 
                 SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                currentDateTime = sdf1.format(new Date());
+                notificationKeeper.dateAndTime = sdf1.format(new Date());
 
-                mDatabase.child("Notification").child(user.getUid()).child(currentDateTime).setValue(notificationKeeper);
+                mDatabase.child("Notification").child(user.getUid()).push().setValue(notificationKeeper);
             }
         }
     }

@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ParentalMonitoring">
 
-    <ListView
+    <TextView
+        android:id="@+id/parentalMonitoringView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_above="@+id/on_off_switch_parental"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="25dp"
+        android:text="Parental Monitoring is Deactivated"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/on_off_switch_parental"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/circle_green"
+        android:drawableTop="@drawable/on_off_switch"
+        android:paddingTop="20dp"
+        android:textColor="#fff"
+        android:layout_centerInParent="true"
+        android:text="Turn On"
+        android:onClick="switchClicked"/>
+
+    <!--<ListView
         android:id="@+id/list_view"
         android:layout_width="395dp"
         android:layout_height="233dp"
@@ -25,6 +51,6 @@
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/list_view"
-        tools:layout_editor_absoluteX="8dp" />
+        tools:layout_editor_absoluteX="8dp" />-->
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>
